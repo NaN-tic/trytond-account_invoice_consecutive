@@ -1,0 +1,30 @@
+account_invoice_consecutive
+===========================
+
+Installing
+----------
+
+See INSTALL
+
+Support
+-------
+
+If you encounter any problems please use bitbucket bugtracker:
+
+  https://bitbucket.org/albertnan/account_invoice_consecutive/issues
+
+Documentation
+-------------
+
+See the doc/ directory.
+
+License
+-------
+
+See LICENSE
+
+Copyright
+---------
+
+See COPYRIGHT
+
