@@ -3,7 +3,7 @@
 #the full copyright notices and license terms.
 {
     'name': 'Account Invoice Consecutive',
-    'version': '2.3.0',
+    'version': '2.4.0',
     'author': 'NaN·tic',
     'email': 'info@NaN-tic.com',
     'website': 'http://www.tryton.org/',
