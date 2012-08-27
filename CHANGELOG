@@ -1,3 +1,4 @@
+* Add es_ES locale
 * Add ca_ES locale
 * setup.py trytond prefix
 * Remove invoice XML file

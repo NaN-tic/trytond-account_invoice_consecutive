@@ -25,5 +25,6 @@
         ],
     'translation': [
         'locale/ca_ES.po',
+        'locale/es_ES.po',
         ]
 }
