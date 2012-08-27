@@ -4,6 +4,4 @@ include TODO
 include COPYRIGHT
 include CHANGELOG
 include LICENSE
-include *.xml
-include *.odt
 include locale/*.po

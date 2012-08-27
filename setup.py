@@ -11,35 +11,31 @@ major_version, minor_version, _ = info.get('version', '0.0.1').split('.', 2)
 major_version = int(major_version)
 minor_version = int(minor_version)
 
-requires = ['python-dateutil']
+requires = []
 for dep in info.get('depends', []):
-    if not re.match(r'(ir|res|workflow|webdav)(\W|$)', dep):
+    if not re.match(r'(ir|res|webdav)(\W|$)', dep):
         requires.append('trytond_%s >= %s.%s, < %s.%s' %
                 (dep, major_version, minor_version, major_version,
                     minor_version + 1))
 requires.append('trytond >= %s.%s, < %s.%s' %
         (major_version, minor_version, major_version, minor_version + 1))
 
-setup(name='account_invoice_consecutive',
+setup(name='trytond_account_invoice_consecutive',
     version=info.get('version', '0.0.1'),
     description=info.get('description', ''),
     author=info.get('author', ''),
     author_email=info.get('email', ''),
     url=info.get('website', ''),
-    download_url=("https://bitbucket.org/albertnan/account_invoice_"
-        "consecutive" + info.get('version', '0.0.1').rsplit('.', 1)[0] + '/'),
+    download_url="https://bitbucket.org/albertnan/account_invoice_consecutive",
     package_dir={'trytond.modules.account_invoice_consecutive': '.'},
     packages=[
         'trytond.modules.account_invoice_consecutive',
         'trytond.modules.account_invoice_consecutive.tests',
-        ],
+    ],
     package_data={
-        'trytond.modules.account_invoice_consecutive': (
-            info.get('xml', []) 
-            + info.get('translation', []) 
-            + ['*.odt', 'icons/*.svg']
-            ),
-        },
+        'trytond.modules.account_invoice_consecutive': info.get('xml', []) \
+                + info.get('translation', []),
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Plugins',
@@ -48,11 +44,11 @@ setup(name='account_invoice_consecutive',
         'Intended Audience :: Financial and Insurance Industry',
         'Intended Audience :: Legal Industry',
         'License :: OSI Approved :: GNU General Public License (GPL)',
-        'Natural Language :: English',
+        'Natural Language :: Catalan',
+        'Natural Language :: Spanish',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
-        'Topic :: Office/Business',
         'Topic :: Office/Business :: Financial :: Accounting',
     ],
     license='GPL-3',
