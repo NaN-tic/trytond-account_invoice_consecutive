@@ -1,0 +1,21 @@
+# 
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "error:account.invoice:"
+msgid ""
+"Number: %(number)s\n"
+"Date: %(date)s\n"
+msgstr ""
+"Número: %(number)s\n"
+"Data: %(date)s\n"
+
+msgctxt "error:account.invoice:"
+msgid ""
+"You are trying to create invoice %(invoice_number)s with date %(invoice_date)s but %(invoice_count)d invoices exist which have incompatible numbers and dates:\n"
+"\n"
+"%(invoices)s"
+msgstr ""
+"Vol crear la factura %(invoice_number)s amb data %(invoice_date)s però %(invoice_count)d ja existeixen factures que fan que la data i número sigui incorrecta:\n"
+"\n"
+"%(invoices)s"
