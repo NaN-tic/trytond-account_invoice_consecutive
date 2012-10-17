@@ -5,3 +5,4 @@ include COPYRIGHT
 include CHANGELOG
 include LICENSE
 include locale/*.po
+include doc/*
