@@ -36,11 +36,12 @@ class Invoice:
                 FROM
                     account_invoice
                 WHERE
-                    type = %s AND (
+                    type = %s AND company = %s AND (
                     (number < %s AND invoice_date > %s) OR
                     (number > %s AND invoice_date < %s)
                     )
-                """, (self.type, self.number, self.invoice_date, 
+                """, (self.type, self.company.id, 
+                    self.number, self.invoice_date, 
                     self.number, self.invoice_date))
             records = cursor.fetchall()
             if records:
