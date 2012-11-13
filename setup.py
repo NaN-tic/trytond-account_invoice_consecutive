@@ -34,14 +34,14 @@ setup(name='trytonzz_account_invoice_consecutive',
     author='NaN·tic',
     author_email='info@NaN-tic.com',
     url='http://www.nan-tic.com',
-    download_url="https://bitbucket.org/zikzakmedia/trytonzz-account_invoice_consecutive",
-    package_dir={'trytonzz.modules.account_invoice_consecutive': '.'},
+    download_url="https://bitbucket.org/zikzakmedia/trytond-account_invoice_consecutive",
+    package_dir={'trytond.modules.account_invoice_consecutive': '.'},
     packages=[
-        'trytonzz.modules.account_invoice_consecutive',
-        'trytonzz.modules.account_invoice_consecutive.tests',
+        'trytond.modules.account_invoice_consecutive',
+        'trytond.modules.account_invoice_consecutive.tests',
     ],
     package_data={
-        'trytonzz.modules.account_invoice_consecutive': info.get('xml', []) \
+        'trytond.modules.account_invoice_consecutive': info.get('xml', []) \
             + ['tryton.cfg', 'locale/*.po'],
     },
     classifiers=[
@@ -63,9 +63,9 @@ setup(name='trytonzz_account_invoice_consecutive',
     install_requires=requires,
     zip_safe=False,
     entry_points="""
-    [trytonzz.modules]
-    account_invoice_consecutive = trytonzz.modules.account_invoice_consecutive
+    [trytond.modules]
+    account_invoice_consecutive = trytond.modules.account_invoice_consecutive
     """,
     test_suite='tests',
-    test_loader='trytonzz.test_loader:Loader',
+    test_loader='trytond.test_loader:Loader',
 )
