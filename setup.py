@@ -29,7 +29,7 @@ requires.append('trytond >= %s.%s, < %s.%s' %
 
 setup(name='trytond_account_invoice_consecutive',
     version=info.get('version', '0.0.1'),
-    description='Tryton module ensures new invoices do not have a date' \ 
+    description='Tryton module ensures new invoices do not have a date' 
         'previous to the latest invoice in the sequence',
     author='NaN·tic',
     author_email='info@NaN-tic.com',
