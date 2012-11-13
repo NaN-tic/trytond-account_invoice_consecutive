@@ -27,21 +27,21 @@ for dep in info.get('depends', []):
 requires.append('trytond >= %s.%s, < %s.%s' %
         (major_version, minor_version, major_version, minor_version + 1))
 
-setup(name='trytond_account_invoice_consecutive',
+setup(name='trytonzz_account_invoice_consecutive',
     version=info.get('version', '0.0.1'),
     description='Tryton module ensures new invoices do not have a date' 
         'previous to the latest invoice in the sequence',
     author='NaN·tic',
     author_email='info@NaN-tic.com',
     url='http://www.nan-tic.com',
-    download_url="https://bitbucket.org/albertnan/account_invoice_consecutive",
-    package_dir={'trytond.modules.account_invoice_consecutive': '.'},
+    download_url="https://bitbucket.org/zikzakmedia/trytonzz-account_invoice_consecutive",
+    package_dir={'trytonzz.modules.account_invoice_consecutive': '.'},
     packages=[
-        'trytond.modules.account_invoice_consecutive',
-        'trytond.modules.account_invoice_consecutive.tests',
+        'trytonzz.modules.account_invoice_consecutive',
+        'trytonzz.modules.account_invoice_consecutive.tests',
     ],
     package_data={
-        'trytond.modules.account_invoice_consecutive': info.get('xml', []) \
+        'trytonzz.modules.account_invoice_consecutive': info.get('xml', []) \
             + ['tryton.cfg', 'locale/*.po'],
     },
     classifiers=[
@@ -63,9 +63,9 @@ setup(name='trytond_account_invoice_consecutive',
     install_requires=requires,
     zip_safe=False,
     entry_points="""
-    [trytond.modules]
-    account_invoice_consecutive = trytond.modules.account_invoice_consecutive
+    [trytonzz.modules]
+    account_invoice_consecutive = trytonzz.modules.account_invoice_consecutive
     """,
     test_suite='tests',
-    test_loader='trytond.test_loader:Loader',
+    test_loader='trytonzz.test_loader:Loader',
 )
