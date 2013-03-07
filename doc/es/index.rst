@@ -26,7 +26,7 @@ Dependencias
 ------------
 
 * Contabilidad_
-* Facturación_
+* `Facturación`_
 * `Contabilidad de productos`_
 * Empresa_
 * Moneda_
