@@ -26,8 +26,8 @@ class Invoice:
         # TODO: When do we check this?
         #if not invoice.journal_id.check_invoice_lines_tax:
             #continue
+        res = super(Invoice, self).set_number()
         if self.type in ('out_invoice', 'out_credit_note'):
-            res = super(Invoice, self).set_number()
             cursor = Transaction().cursor
             cursor.execute("""
                 SELECT 
