@@ -36,7 +36,7 @@ class Invoice:
                 FROM
                     account_invoice
                 WHERE
-                    type = %s AND company = %s AND (
+                    state <> 'draft' AND type = %s AND company = %s AND (
                     (number < %s AND invoice_date > %s) OR
                     (number > %s AND invoice_date < %s)
                     )
