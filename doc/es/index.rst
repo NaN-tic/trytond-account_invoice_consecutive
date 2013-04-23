@@ -5,23 +5,6 @@ Fecha de la factura correlativa
 Este módulo previene la creación de facturas con una fecha anterior a la fecha
 de la última factura. Sólo comprueba las facturas de cliente y de devolución.
 
-Módulos de los que depende
-==========================
-
-Instalados
-----------
-
-.. toctree::
-   :maxdepth: 1
-   
-   /account/index
-   /account_invoice/index
-   /account_product/index
-   /company/index
-   /currency/index
-   /party/index
-   /product/index
-
 Dependencias
 ------------
 
