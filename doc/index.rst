@@ -8,3 +8,12 @@ countries such as Spain.
 
 The check is only applied to *customer* invoices and credit notes.
 
+Important that invoice numbers are same number of characters. In invoice secuence
+configuration add zeros in prefix to generate invoices numbers: Example:
+
+ * 00001
+ * 00002
+ * ...
+ * 00200
+ * 00201
+ * ...
