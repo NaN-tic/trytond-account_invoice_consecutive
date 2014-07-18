@@ -1,5 +1,5 @@
 #This file is part account_invoice_consecutive module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains 
+#The COPYRIGHT file at the top level of this repository contains
 #the full copyright notices and license terms.
 from trytond.transaction import Transaction
 from trytond.pool import PoolMeta
@@ -28,21 +28,17 @@ class Invoice:
             #continue
         super(Invoice, self).set_number()
         if self.type in ('out_invoice', 'out_credit_note'):
+            table = self.__table__()
+            query = table.select(table.number, table.invoice_date,
+                where=((table.state != 'draft') &
+                    (table.type == self.type) &
+                    (table.company == self.company.id) &
+                    (((table.number < self.number) &
+                            (table.invoice_date > self.invoice_date)) |
+                        ((table.number > self.number) &
+                                (table.invoice_date < self.invoice_date)))))
             cursor = Transaction().cursor
-            cursor.execute("""
-                SELECT 
-                    number, 
-                    invoice_date
-                FROM
-                    account_invoice
-                WHERE
-                    state <> 'draft' AND type = %s AND company = %s AND (
-                    (number < %s AND invoice_date > %s) OR
-                    (number > %s AND invoice_date < %s)
-                    )
-                """, (self.type, self.company.id, 
-                    self.number, self.invoice_date, 
-                    self.number, self.invoice_date))
+            cursor.execute(*query)
             records = cursor.fetchall()
             if records:
                 limit = 5
@@ -52,8 +48,8 @@ class Invoice:
                     } for record in records]
                 info = '\n'.join(info[:limit])
                 self.raise_user_error('invalid_number_date', {
-                    'invoice_number': self.number, 
-                    'invoice_date': self.invoice_date, 
+                    'invoice_number': self.number,
+                    'invoice_date': self.invoice_date,
                     'invoice_count': len(records),
                     'invoices': info,
                     })
