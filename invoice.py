@@ -26,19 +26,36 @@ class Invoice:
         # TODO: When do we check this?
         #if not invoice.journal_id.check_invoice_lines_tax:
             #continue
-        Lang = Pool().get('ir.lang')
+        pool = Pool()
+        Period = pool.get('account.period')
+        Move = pool.get('account.move')
+        Lang = pool.get('ir.lang')
+        Module = pool.get('ir.module.module')
 
         super(Invoice, self).set_number()
         if self.type in ('out_invoice', 'out_credit_note'):
             table = self.__table__()
-            query = table.select(table.number, table.invoice_date,
-                where=((table.state != 'draft') &
-                    (table.type == self.type) &
-                    (table.company == self.company.id) &
-                    (((table.number < self.number) &
-                            (table.invoice_date > self.invoice_date)) |
-                        ((table.number > self.number) &
-                                (table.invoice_date < self.invoice_date)))))
+            move = Move.__table__()
+            accounting_date = self.accounting_date or self.invoice_date
+            period_id = Period.find(self.company.id, date=accounting_date)
+            query = table.join(move, condition=(table.move == move.id))
+            where = ((table.state != 'draft') &
+                (table.type == self.type) &
+                (table.company == self.company.id) &
+                (move.period == period_id))
+
+            account_invoice_sequence_module_installed = Module.search([
+                    ('name', '=', 'account_invoice_sequence'),
+                    ('state', '=', 'installed'),
+                ])
+            if account_invoice_sequence_module_installed:
+                where &= (table.journal == self.journal.id)
+
+            where &= (((table.number < self.number) &
+                    (table.invoice_date > accounting_date)) |
+                ((table.number > self.number) &
+                    (table.invoice_date < accounting_date)))
+            query = query.select(table.number, table.invoice_date, where=where)
             cursor = Transaction().cursor
             cursor.execute(*query)
             records = cursor.fetchall()
