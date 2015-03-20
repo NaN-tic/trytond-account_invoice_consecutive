@@ -45,7 +45,7 @@ class Invoice:
                 (move.period == period_id))
 
             account_invoice_sequence_module_installed = Module.search([
-                    ('name', '=', 'account_invoice_sequence'),
+                    ('name', '=', 'account_invoice_multisequence'),
                     ('state', '=', 'installed'),
                 ])
             if account_invoice_sequence_module_installed:
