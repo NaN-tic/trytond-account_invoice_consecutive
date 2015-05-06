@@ -36,13 +36,17 @@ class Invoice:
         if self.type in ('out_invoice', 'out_credit_note'):
             table = self.__table__()
             move = Move.__table__()
+            period = Period.__table__()
             accounting_date = self.accounting_date or self.invoice_date
             period_id = Period.find(self.company.id, date=accounting_date)
-            query = table.join(move, condition=(table.move == move.id))
+            fiscalyear = Period(period_id).fiscalyear
+            query = table.join(move, condition=(table.move == move.id)).join(
+                period, condition=move.period == period.id)
+
             where = ((table.state != 'draft') &
                 (table.type == self.type) &
                 (table.company == self.company.id) &
-                (move.period == period_id))
+                (period.fiscalyear == fiscalyear.id))
 
             account_invoice_sequence_module_installed = Module.search([
                     ('name', '=', 'account_invoice_multisequence'),
@@ -55,7 +59,8 @@ class Invoice:
                     (table.invoice_date > accounting_date)) |
                 ((table.number > self.number) &
                     (table.invoice_date < accounting_date)))
-            query = query.select(table.number, table.invoice_date, where=where)
+            query = query.select(table.number, table.invoice_date, where=where,
+                limit=5)
             cursor = Transaction().cursor
             cursor.execute(*query)
             records = cursor.fetchall()
@@ -65,13 +70,12 @@ class Invoice:
                 if not languages:
                     languages = Lang.search([('code', '=', 'en_US')])
                 language = languages[0]
-                limit = 5
                 info = ['%(number)s - %(date)s' % {
                     'number': record[0],
                     'date': Lang.strftime(record[1], language.code,
                         language.date),
                     } for record in records]
-                info = '\n'.join(info[:limit])
+                info = '\n'.join(info)
                 self.raise_user_error('invalid_number_date', {
                     'invoice_number': self.number,
                     'invoice_date': Lang.strftime(self.invoice_date,
