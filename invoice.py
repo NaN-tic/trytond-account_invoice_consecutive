@@ -1,6 +1,5 @@
-#This file is part account_invoice_consecutive module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains
-#the full copyright notices and license terms.
+# The COPYRIGHT file at the top level of this repository contains
+# the full copyright notices and license terms.
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
 
@@ -24,8 +23,8 @@ class Invoice:
 
     def set_number(self):
         # TODO: When do we check this?
-        #if not invoice.journal_id.check_invoice_lines_tax:
-            #continue
+        # if not invoice.journal_id.check_invoice_lines_tax:
+            # continue
         pool = Pool()
         Period = pool.get('account.period')
         Move = pool.get('account.move')

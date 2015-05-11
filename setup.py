@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
-#This file is part account_invoice_consecutive module for Tryton.
-#The COPYRIGHT file at the top level of this repository contains
-#the full copyright notices and license terms.
+# The COPYRIGHT file at the top level of this repository contains
+# the full copyright notices and license terms.
 from setuptools import setup
 import re
 import os
@@ -41,7 +40,7 @@ tests_require = ['proteus >= %s.%s, < %s.%s' %
 
 setup(name='%s_%s' % (PREFIX, MODULE),
     version=info.get('version', '0.0.1'),
-    description='Tryton module ensures new invoices do not have a date' 
+    description='Tryton module ensures new invoices do not have a date'
         'previous to the latest invoice in the sequence',
     author='NaN·tic',
     author_email='info@NaN-tic.com',
