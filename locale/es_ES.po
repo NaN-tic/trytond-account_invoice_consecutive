@@ -1,4 +1,4 @@
-# 
+#
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
@@ -11,3 +11,13 @@ msgstr ""
 "Quiere crear la factura %(invoice_number)s con fecha %(invoice_date)s . Hay %(invoice_count)d facturas posteriores a esta fecha:\n"
 "\n"
 "%(invoices)s"
+
+msgctxt "error:account.invoice:"
+msgid ""
+"You are trying to validate an invoice where invoice date (%(invoice_date)s) "
+"and accounting date (%(accounting_date)s) are different. That is not "
+"permitted, because of invoice number and date correlation."
+msgstr ""
+"La fecha de la factura (%(invoice_date)s) y la de contabilización "
+"(%(accounting_date)s) no son iguales. Lo tiene que ser para el control de la"
+" correlación entre número y fecha de factura."

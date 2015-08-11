@@ -19,6 +19,36 @@ class Invoice:
                     '%(invoice_number)s invoice on date %(invoice_date)s. '
                     'There are %(invoice_count)d invoices after this date:'
                     '\n\n%(invoices)s',
+                'not_same_dates': 'You are trying to validate an invoice '
+                    'where invoice date (%(invoice_date)s) and accounting '
+                    'date (%(accounting_date)s) are different. That is not '
+                    'permitted, because of invoice number and date '
+                    'correlation.',
+                })
+
+    @classmethod
+    def validate(cls, invoices):
+        super(Invoice, cls).validate(invoices)
+        for invoice in invoices:
+            invoice.check_same_dates()
+
+    def check_same_dates(self):
+        pool=Pool()
+        Lang = pool.get('ir.lang')
+
+        if (self.invoice_date and self.accounting_date
+            and self.invoice_date != self.accounting_date):
+            language = Transaction().language
+            languages = Lang.search([('code', '=', language)])
+            if not languages:
+                languages = Lang.search([('code', '=', 'en_US')])
+            language = languages[0]
+
+            self.raise_user_error('not_same_dates', {
+                'invoice_date': Lang.strftime(self.invoice_date, language.code,
+                    language.date),
+                'accounting_date': Lang.strftime(self.accounting_date,
+                    language.code, language.date),
                 })
 
     def set_number(self):
@@ -36,8 +66,10 @@ class Invoice:
             table = self.__table__()
             move = Move.__table__()
             period = Period.__table__()
-            accounting_date = self.accounting_date or self.invoice_date
-            period_id = Period.find(self.company.id, date=accounting_date)
+            # As we have a control in the validate that make the
+            # accounting_date have to be the same as invoice_date, in cas it
+            # exist, we can use invoice_date to calculate the period.
+            period_id = Period.find(self.company.id, date=self.invoice_date)
             fiscalyear = Period(period_id).fiscalyear
             query = table.join(move, condition=(table.move == move.id)).join(
                 period, condition=move.period == period.id)
@@ -55,9 +87,9 @@ class Invoice:
                 where &= (table.journal == self.journal.id)
 
             where &= (((table.number < self.number) &
-                    (table.invoice_date > accounting_date)) |
+                    (table.invoice_date > self.invoice_date)) |
                 ((table.number > self.number) &
-                    (table.invoice_date < accounting_date)))
+                    (table.invoice_date < self.invoice_date)))
             query = query.select(table.number, table.invoice_date, where=where,
                 limit=5)
             cursor = Transaction().cursor
