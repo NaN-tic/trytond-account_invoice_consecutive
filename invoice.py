@@ -60,7 +60,7 @@ class Invoice:
         Period = pool.get('account.period')
         Move = pool.get('account.move')
         Lang = pool.get('ir.lang')
-        Module = pool.get('ir.module.module')
+        Module = pool.get('ir.module')
 
         super(Invoice, self).set_number()
         if self.type in ('out_invoice', 'out_credit_note'):
