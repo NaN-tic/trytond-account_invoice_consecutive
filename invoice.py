@@ -30,7 +30,8 @@ class Invoice:
     def validate(cls, invoices):
         super(Invoice, cls).validate(invoices)
         for invoice in invoices:
-            invoice.check_same_dates()
+            if 'in_' not in invoice.type:
+                invoice.check_same_dates()
 
     def check_same_dates(self):
         pool=Pool()
