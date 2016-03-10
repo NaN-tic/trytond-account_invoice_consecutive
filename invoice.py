@@ -94,7 +94,7 @@ class Invoice:
                     (table.invoice_date < self.invoice_date)))
             query = query.select(table.number, table.invoice_date, where=where,
                 limit=5)
-            cursor = Transaction().cursor
+            cursor = Transaction().connection.cursor()
             cursor.execute(*query)
             records = cursor.fetchall()
             if records:
