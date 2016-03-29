@@ -29,7 +29,7 @@ class Invoice:
     def validate(cls, invoices):
         super(Invoice, cls).validate(invoices)
         for invoice in invoices:
-            if 'in_' not in invoice.type:
+            if invoice.type != 'in':
                 invoice.check_same_dates()
 
     def check_same_dates(self):
@@ -63,7 +63,7 @@ class Invoice:
         check = not bool(self.number)
 
         super(Invoice, self).set_number()
-        if check and self.type in ('out_invoice', 'out_credit_note'):
+        if check and self.type == 'out':
             table = self.__table__()
             move = Move.__table__()
             period = Period.__table__()
