@@ -5,63 +5,61 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 import doctest
 import unittest
+from trytond.pool import Pool
 import trytond.tests.test_tryton
-from trytond.tests.test_tryton import ModuleTestCase
-from trytond.tests.test_tryton import POOL, DB_NAME, USER, CONTEXT
-from trytond.transaction import Transaction
+from trytond.tests.test_tryton import ModuleTestCase, with_transaction
 from trytond.exceptions import UserError
+
+from trytond.modules.company.tests import create_company, set_company
+from trytond.modules.account.tests import create_chart, get_fiscalyear
+from trytond.modules.account_invoice.tests import set_invoice_sequences
 
 
 class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
     'Test Account Invoice Consecutive module'
     module = 'account_invoice_consecutive'
 
-    def setUp(self):
-        super(AccountInvoiceConsecutiveTestCase, self).setUp()
-        self.account = POOL.get('account.account')
-        self.invoice = POOL.get('account.invoice')
-        self.journal = POOL.get('account.journal')
-        self.field = POOL.get('ir.model.field')
-        self.party = POOL.get('party.party')
-        self.payment_term = POOL.get('account.invoice.payment_term')
-        self.sequence_strict = POOL.get('ir.sequence.strict')
-        self.period = POOL.get('account.period')
-        self.property = POOL.get('ir.property')
-
+    @with_transaction()
     def test0010check_credit_limit(self):
         'Test check_credit_limit'
-        with Transaction().start(DB_NAME, USER, context=CONTEXT):
-            receivable, = self.account.search([
+        pool = Pool()
+        FiscalYear = pool.get('account.fiscalyear')
+        Account = pool.get('account.account')
+        Invoice = pool.get('account.invoice')
+        Journal = pool.get('account.journal')
+        Field = pool.get('ir.model.field')
+        Party = pool.get('party.party')
+        PaymentTerm = pool.get('account.invoice.payment_term')
+        Property = pool.get('ir.property')
+
+        company = create_company()
+        with set_company(company):
+            create_chart(company)
+            fiscalyear = set_invoice_sequences(get_fiscalyear(company))
+            fiscalyear.save()
+            FiscalYear.create_period([fiscalyear])
+            first_period = fiscalyear.periods[0]
+            second_period = fiscalyear.periods[1]
+
+            receivable, = Account.search([
                     ('kind', '=', 'receivable'),
                     ])
-            revenue, = self.account.search([
+            revenue, = Account.search([
                     ('kind', '=', 'revenue'),
                     ])
-            account_tax, = self.account.search([
+            account_tax, = Account.search([
                     ('kind', '=', 'other'),
                     ('name', '=', 'Main Tax'),
                     ])
-            journal, = self.journal.search([], limit=1)
-            first_period, second_period = self.period.search([], limit=2)
-            fiscalyear = first_period.fiscalyear
+            journal, = Journal.search([], limit=1)
 
-            invoice_seq = self.sequence_strict()
-            invoice_seq.name = fiscalyear.name
-            invoice_seq.code = 'account.invoice'
-            invoice_seq.company = fiscalyear.company
-            invoice_seq.save()
-            fiscalyear.out_invoice_sequence = invoice_seq
-            fiscalyear.in_invoice_sequence = invoice_seq
-            fiscalyear.out_credit_note_sequence = invoice_seq
-            fiscalyear.in_credit_note_sequence = invoice_seq
-            fiscalyear.save()
-            party, = self.party.create([{
+            party, = Party.create([{
                         'name': 'Party',
                         'addresses': [('create', [{}])],
                         'account_receivable': receivable.id,
                         }])
 
-            term, = self.payment_term.create([{
+            term, = PaymentTerm.create([{
                         'name': 'Payment term',
                         'lines': [
                             ('create', [{
@@ -76,38 +74,38 @@ class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
                                         }])],
                         }])
 
-            field, = self.field.search([
+            field, = Field.search([
                     ('name', '=', 'account_revenue'),
                     ('model.model', '=', 'product.template'),
                     ])
 
-            self.property.create([{
-                        'value': 'account.account,%d' % revenue.id,
-                        'field': field.id,
-                        'res': None,
-                        }])
+            Property.create([{
+                    'value': 'account.account,%d' % revenue.id,
+                    'field': field.id,
+                    'res': None,
+                    }])
 
             def create_invoice(date):
-                invoice, = self.invoice.create([{
-                            'invoice_date': date,
-                            'type': 'out_invoice',
-                            'party': party.id,
-                            'invoice_address': party.addresses[0].id,
-                            'journal': journal.id,
-                            'account': receivable.id,
-                            'payment_term': term.id,
-                            'lines': [
-                                ('create', [{
-                                            'invoice_type': 'out_invoice',
-                                            'type': 'line',
-                                            'sequence': 0,
-                                            'description': 'invoice_line',
-                                            'account': revenue.id,
-                                            'quantity': 1,
-                                            'unit_price': Decimal('50.0'),
-                            }])],
-                            }])
-                self.invoice.post([invoice])
+                invoice, = Invoice.create([{
+                        'invoice_date': date,
+                        'type': 'out',
+                        'party': party.id,
+                        'invoice_address': party.addresses[0].id,
+                        'journal': journal.id,
+                        'account': receivable.id,
+                        'payment_term': term.id,
+                        'lines': [
+                            ('create', [{
+                                        'invoice_type': 'out',
+                                        'type': 'line',
+                                        'sequence': 0,
+                                        'description': 'invoice_line',
+                                        'account': revenue.id,
+                                        'quantity': 1,
+                                        'unit_price': Decimal('50.0'),
+                                        }])],
+                        }])
+                Invoice.post([invoice])
                 return invoice
             today = second_period.start_date + relativedelta(days=2)
             yesterday = second_period.start_date + relativedelta(days=1)
