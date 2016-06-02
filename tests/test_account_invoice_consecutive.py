@@ -3,7 +3,6 @@
 # copyright notices and license terms.
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
-import doctest
 import unittest
 from trytond.pool import Pool
 import trytond.tests.test_tryton
@@ -124,10 +123,6 @@ class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
 
 def suite():
     suite = trytond.tests.test_tryton.suite()
-    from trytond.modules.account.tests import test_account
-    for test in test_account.suite():
-        if test not in suite and not isinstance(test, doctest.DocTestCase):
-            suite.addTest(test)
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(
         AccountInvoiceConsecutiveTestCase))
     return suite
