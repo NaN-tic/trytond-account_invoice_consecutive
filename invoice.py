@@ -51,7 +51,8 @@ class Invoice:
                     language.code, language.date),
                 })
 
-    def set_number(self):
+    @classmethod
+    def set_number(cls, invoices):
         # TODO: When do we check this?
         # if not invoice.journal_id.check_invoice_lines_tax:
             # continue
@@ -60,37 +61,39 @@ class Invoice:
         Move = pool.get('account.move')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module')
-        check = not bool(self.number)
+        to_check = [i for i in invoices
+            if not bool(i.number) and i.type == 'out']
 
-        super(Invoice, self).set_number()
-        if check and self.type == 'out':
-            table = self.__table__()
+        super(Invoice, cls).set_number(invoices)
+        for invoice in to_check:
+            table = cls.__table__()
             move = Move.__table__()
             period = Period.__table__()
             # As we have a control in the validate that make the
             # accounting_date have to be the same as invoice_date, in cas it
             # exist, we can use invoice_date to calculate the period.
-            period_id = Period.find(self.company.id, date=self.invoice_date)
+            period_id = Period.find(
+                invoice.company.id, date=invoice.invoice_date)
             fiscalyear = Period(period_id).fiscalyear
             query = table.join(move, condition=(table.move == move.id)).join(
                 period, condition=move.period == period.id)
 
             where = ((table.state != 'draft') &
-                (table.type == self.type) &
-                (table.company == self.company.id) &
+                (table.type == invoice.type) &
+                (table.company == invoice.company.id) &
                 (period.fiscalyear == fiscalyear.id))
 
             account_invoice_sequence_module_installed = Module.search([
                     ('name', '=', 'account_invoice_multisequence'),
                     ('state', '=', 'installed'),
-                ])
+            ])
             if account_invoice_sequence_module_installed:
-                where &= (table.journal == self.journal.id)
+                where &= (table.journal == invoice.journal.id)
 
-            where &= (((table.number < self.number) &
-                    (table.invoice_date > self.invoice_date)) |
-                ((table.number > self.number) &
-                    (table.invoice_date < self.invoice_date)))
+            where &= (((table.number < invoice.number) &
+                    (table.invoice_date > invoice.invoice_date)) |
+                ((table.number > invoice.number) &
+                    (table.invoice_date < invoice.invoice_date)))
             query = query.select(table.number, table.invoice_date, where=where,
                 limit=5)
             cursor = Transaction().connection.cursor()
@@ -108,9 +111,9 @@ class Invoice:
                         language.date),
                     } for record in records]
                 info = '\n'.join(info)
-                self.raise_user_error('invalid_number_date', {
-                    'invoice_number': self.number,
-                    'invoice_date': Lang.strftime(self.invoice_date,
+                cls.raise_user_error('invalid_number_date', {
+                    'invoice_number': invoice.number,
+                    'invoice_date': Lang.strftime(invoice.invoice_date,
                         language.code, language.date),
                     'invoice_count': len(records),
                     'invoices': info,
