@@ -99,10 +99,13 @@ class Invoice:
             cursor.execute(*query)
             records = cursor.fetchall()
             if records:
-                language = Transaction().language
-                languages = Lang.search([('code', '=', language)])
+                lang_code = Transaction().language
+                languages = Lang.search([('code', '=', lang_code)],
+                    limit=1)
                 if not languages:
                     language, = Lang.search([('code', '=', 'en')], limit=1)
+                else:
+                    language, = languages
 
                 info = ['%(number)s - %(date)s' % {
                     'number': record[0],
