@@ -2,7 +2,6 @@
 # the full copyright notices and license terms.
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Bool, Eval
 
 __all__ = ['Invoice']
 
@@ -25,15 +24,6 @@ class Invoice:
                     'permitted, because of invoice number and date '
                     'correlation.',
                 })
-        if 'number' not in cls.invoice_date.depends:
-            new_readonly = Bool(Eval('number'))
-            readonly = cls.invoice_date.states.get('readonly')
-            if readonly:
-                new_readonly |= readonly
-            cls.invoice_date.states.update({
-                    'readonly': new_readonly,
-                    })
-            cls.invoice_date.depends.append('number')
 
     @classmethod
     def validate(cls, invoices):
