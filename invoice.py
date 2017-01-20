@@ -71,10 +71,9 @@ class Invoice:
         Move = pool.get('account.move')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module.module')
-        check = not bool(self.number)
 
         super(Invoice, self).set_number()
-        if check and self.type in ('out_invoice', 'out_credit_note'):
+        if self.type in ('out_invoice', 'out_credit_note'):
             table = self.__table__()
             move = Move.__table__()
             period = Period.__table__()
