@@ -83,7 +83,7 @@ class Invoice:
 
             account_invoice_sequence_module_installed = Module.search([
                     ('name', '=', 'account_invoice_multisequence'),
-                    ('state', '=', 'installed'),
+                    ('state', '=', 'activated'),
             ])
             if account_invoice_sequence_module_installed:
                 where &= (table.journal == invoice.journal.id)
