@@ -2,6 +2,7 @@
 # the full copyright notices and license terms.
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
+from trytond.model import fields
 
 __all__ = ['Invoice']
 
@@ -9,6 +10,8 @@ __all__ = ['Invoice']
 class Invoice:
     __metaclass__ = PoolMeta
     __name__ = 'account.invoice'
+
+    new_type = fields.Char('New invoice type')
 
     @classmethod
     def __setup__(cls):
@@ -33,11 +36,11 @@ class Invoice:
                 invoice.check_same_dates()
 
     def check_same_dates(self):
-        pool=Pool()
+        pool = Pool()
         Lang = pool.get('ir.lang')
 
         if (self.invoice_date and self.accounting_date
-            and self.invoice_date != self.accounting_date):
+                and self.invoice_date != self.accounting_date):
             language = Transaction().language
             languages = Lang.search([('code', '=', language)])
             if not languages:
@@ -55,6 +58,7 @@ class Invoice:
         # TODO: When do we check this?
         # if not invoice.journal_id.check_invoice_lines_tax:
             # continue
+        # TODO: CALL special method to overcharge set_number_criteria
         pool = Pool()
         Period = pool.get('account.period')
         Move = pool.get('account.move')
@@ -62,6 +66,8 @@ class Invoice:
         Module = pool.get('ir.module')
 
         super(Invoice, self).set_number()
+        self.new_type = self.type + self.invoice_type_criteria()
+        self.save()
         if self.type == 'out':
             table = self.__table__()
             move = Move.__table__()
@@ -73,9 +79,11 @@ class Invoice:
             fiscalyear = Period(period_id).fiscalyear
             query = table.join(move, condition=(table.move == move.id)).join(
                 period, condition=move.period == period.id)
-
+            # Get invoice type
+            # Change self.type for self.new_type
             where = ((table.state != 'draft') &
-                (table.type == self.type) &
+                (table.new_type == self.new_type) &
+                (table.journal == self.journal.id) &
                 (table.company == self.company.id) &
                 (period.fiscalyear == fiscalyear.id))
 
