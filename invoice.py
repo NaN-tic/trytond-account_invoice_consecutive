@@ -2,6 +2,7 @@
 # the full copyright notices and license terms.
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
+from sql.aggregate import Sum
 
 __all__ = ['Invoice']
 
@@ -60,36 +61,54 @@ class Invoice:
         Move = pool.get('account.move')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module')
+        InvoiceLine = pool.get('account.invoice.line')
 
         super(Invoice, self).set_number()
         if self.type == 'out':
             table = self.__table__()
             move = Move.__table__()
             period = Period.__table__()
+            iline = InvoiceLine.__table__()
+
             # As we have a control in the validate that make the
             # accounting_date have to be the same as invoice_date, in cas it
             # exist, we can use invoice_date to calculate the period.
             period_id = Period.find(self.company.id, date=self.invoice_date)
             fiscalyear = Period(period_id).fiscalyear
-            query = table.join(move, condition=(table.move == move.id)).join(
+
+            query = table.join(iline, condition=(table.id == iline.invoice))
+
+            query = query.join(move, condition=(table.move == move.id)).join(
                 period, condition=move.period == period.id)
 
-            where = ((table.state != 'draft') &
+            where = ((table.number != None) &
                 (table.type == self.type) &
                 (table.company == self.company.id) &
                 (period.fiscalyear == fiscalyear.id))
-
             account_invoice_sequence_module_installed = Module.search([
                     ('name', '=', 'account_invoice_multisequence'),
                     ('state', '=', 'installed'),
                 ])
+
             if account_invoice_sequence_module_installed:
                 where &= (table.journal == self.journal.id)
 
-            where &= (((table.number < self.number) &
+            subselect = query.select(table.id,
+                Sum(iline.quantity*iline.unit_price).as_('amount'),
+                where=where, group_by=(table.id))
+
+            if self.untaxed_amount >= 0:
+                where2 = (subselect.amount >= 0)
+            else:
+                where2 = (subselect.amount < 0)
+
+            where &= (
+                (table.id.in_(subselect.select(subselect.id, where=where2))) &
+                (((table.number < self.number) &
                     (table.invoice_date > self.invoice_date)) |
                 ((table.number > self.number) &
-                    (table.invoice_date < self.invoice_date)))
+                    (table.invoice_date < self.invoice_date))))
+
             query = query.select(table.number, table.invoice_date, where=where,
                 limit=5)
             cursor = Transaction().connection.cursor()
