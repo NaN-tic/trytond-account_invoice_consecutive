@@ -3,6 +3,7 @@
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
 from sql.aggregate import Sum
+from sql.functions import Round
 
 __all__ = ['Invoice']
 
@@ -93,9 +94,9 @@ class Invoice:
             if account_invoice_sequence_module_installed:
                 where &= (table.journal == self.journal.id)
 
-            subselect = query.select(table.id,
-                Sum(iline.quantity*iline.unit_price).as_('amount'),
-                where=where, group_by=(table.id))
+            subselect = query.select(table.id, table.number,
+                Round(Sum(iline.quantity*iline.unit_price)).as_('amount'),
+                where=where, group_by=(table.id, table.number))
 
             if self.untaxed_amount >= 0:
                 where2 = (subselect.amount >= 0)
