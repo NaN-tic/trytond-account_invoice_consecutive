@@ -26,10 +26,8 @@ class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
         Account = pool.get('account.account')
         Invoice = pool.get('account.invoice')
         Journal = pool.get('account.journal')
-        Field = pool.get('ir.model.field')
         Party = pool.get('party.party')
         PaymentTerm = pool.get('account.invoice.payment_term')
-        Property = pool.get('ir.property')
 
         company = create_company()
         with set_company(company):
@@ -72,17 +70,6 @@ class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
                                                         }])],
                                         }])],
                         }])
-
-            field, = Field.search([
-                    ('name', '=', 'account_revenue'),
-                    ('model.model', '=', 'product.template'),
-                    ])
-
-            Property.create([{
-                    'value': 'account.account,%d' % revenue.id,
-                    'field': field.id,
-                    'res': None,
-                    }])
 
             def create_invoice(date):
                 invoice, = Invoice.create([{

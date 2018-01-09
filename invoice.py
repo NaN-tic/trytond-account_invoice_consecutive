@@ -98,24 +98,15 @@ class Invoice:
             cursor.execute(*query)
             records = cursor.fetchall()
             if records:
-                lang_code = Transaction().language
-                languages = Lang.search([('code', '=', lang_code)],
-                    limit=1)
-                if not languages:
-                    language, = Lang.search([('code', '=', 'en')], limit=1)
-                else:
-                    language, = languages
-
+                language = Lang.get()
                 info = ['%(number)s - %(date)s' % {
                     'number': record[0],
-                    'date': Lang.strftime(record[1], language.code,
-                        language.date),
+                    'date': language.strftime(record[1]),
                     } for record in records]
                 info = '\n'.join(info)
                 cls.raise_user_error('invalid_number_date', {
                     'invoice_number': invoice.number,
-                    'invoice_date': Lang.strftime(invoice.invoice_date,
-                        language.code, language.date),
+                    'invoice_date': language.strftime(invoice.invoice_date),
                     'invoice_count': len(records),
                     'invoices': info,
                     })
