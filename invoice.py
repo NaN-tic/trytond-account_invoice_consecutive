@@ -15,14 +15,14 @@ class Invoice:
         super(Invoice, cls).__setup__()
         cls._error_messages.update({
                 'invalid_number_date': 'You are trying to create '
-                    '%(invoice_number)s invoice on date %(invoice_date)s. '
-                    'There are %(invoice_count)d invoices after this date:'
-                    '\n\n%(invoices)s',
+                '%(invoice_number)s invoice on date %(invoice_date)s. '
+                'There are %(invoice_count)d invoices after this date:'
+                '\n\n%(invoices)s',
                 'not_same_dates': 'You are trying to validate an invoice '
-                    'where invoice date (%(invoice_date)s) and accounting '
-                    'date (%(accounting_date)s) are different. That is not '
-                    'permitted, because of invoice number and date '
-                    'correlation.',
+                'where invoice date (%(invoice_date)s) and accounting '
+                'date (%(accounting_date)s) are different. That is not '
+                'permitted, because of invoice number and date '
+                'correlation.',
                 })
 
     @classmethod
@@ -33,11 +33,11 @@ class Invoice:
                 invoice.check_same_dates()
 
     def check_same_dates(self):
-        pool=Pool()
+        pool = Pool()
         Lang = pool.get('ir.lang')
 
         if (self.invoice_date and self.accounting_date
-            and self.invoice_date != self.accounting_date):
+                and self.invoice_date != self.accounting_date):
             language = Transaction().language
             languages = Lang.search([('code', '=', language)])
             if not languages:
