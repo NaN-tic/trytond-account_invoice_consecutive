@@ -2,6 +2,8 @@
 # the full copyright notices and license terms.
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
+from sql.aggregate import Sum
+from sql.functions import Round
 
 __all__ = ['Invoice']
 
@@ -58,6 +60,7 @@ class Invoice:
         pool = Pool()
         Period = pool.get('account.period')
         Move = pool.get('account.move')
+        InvoiceLine = pool.get('account.invoice.line')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module')
         to_check = [i for i in invoices if i.type == 'out']
@@ -67,31 +70,48 @@ class Invoice:
             table = cls.__table__()
             move = Move.__table__()
             period = Period.__table__()
+            iline = InvoiceLine.__table__()
+
             # As we have a control in the validate that make the
             # accounting_date have to be the same as invoice_date, in cas it
             # exist, we can use invoice_date to calculate the period.
             period_id = Period.find(
                 invoice.company.id, date=invoice.invoice_date)
             fiscalyear = Period(period_id).fiscalyear
-            query = table.join(move, condition=(table.move == move.id)).join(
+
+            query = table.join(iline, condition=(table.id == iline.invoice))
+
+            query = query.join(move, condition=(table.move == move.id)).join(
                 period, condition=move.period == period.id)
 
             where = ((table.state != 'draft') &
                 (table.type == invoice.type) &
                 (table.company == invoice.company.id) &
                 (period.fiscalyear == fiscalyear.id))
-
             account_invoice_sequence_module_installed = Module.search([
                     ('name', '=', 'account_invoice_multisequence'),
                     ('state', '=', 'activated'),
             ])
+
             if account_invoice_sequence_module_installed:
                 where &= (table.journal == invoice.journal.id)
 
-            where &= (((table.number < invoice.number) &
+            subselect = query.select(table.id, table.number,
+                Round(Sum(iline.quantity * iline.unit_price)).as_('amount'),
+                where=where, group_by=(table.id, table.number))
+
+            if invoice.untaxed_amount > 0:
+                where2 = (subselect.amount > 0)
+            else:
+                where2 = (subselect.amount <= 0)
+
+            where &= (
+                (table.id.in_(subselect.select(subselect.id, where=where2))) &
+                (((table.number < invoice.number) &
                     (table.invoice_date > invoice.invoice_date)) |
                 ((table.number > invoice.number) &
-                    (table.invoice_date < invoice.invoice_date)))
+                    (table.invoice_date < invoice.invoice_date))))
+
             query = query.select(table.number, table.invoice_date, where=where,
                 limit=5)
             cursor = Transaction().connection.cursor()
