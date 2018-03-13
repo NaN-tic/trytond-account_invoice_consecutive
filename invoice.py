@@ -64,8 +64,9 @@ class Invoice:
         Module = pool.get('ir.module')
         InvoiceLine = pool.get('account.invoice.line')
 
+        has_number = True if self.number else False
         super(Invoice, self).set_number()
-        if self.type == 'out':
+        if self.type == 'out' and not has_number:
             table = self.__table__()
             move = Move.__table__()
             period = Period.__table__()
