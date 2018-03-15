@@ -62,8 +62,9 @@ class Invoice:
         Move = pool.get('account.move')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module')
-        to_check = [i for i in invoices if i.type == 'out']
         InvoiceLine = pool.get('account.invoice.line')
+
+        to_check = [i for i in invoices if i.type == 'out' and not i.number]
 
         super(Invoice, cls).set_number(invoices)
         for invoice in to_check:
