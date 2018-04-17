@@ -41,9 +41,10 @@ class Invoice:
         if (self.invoice_date and self.accounting_date
                 and self.invoice_date != self.accounting_date):
             language = Transaction().language
-            languages = Lang.search([('code', '=', language)])
+            languages = Lang.search([('code', '=', language)], limit=1)
             if not languages:
-                language, = Lang.search([('code', '=', 'en')], limit=1)
+                languages = Lang.search([('code', '=', 'en')], limit=1)
+            language, = languages
 
             self.raise_user_error('not_same_dates', {
                 'invoice_date': Lang.strftime(self.invoice_date, language.code,
