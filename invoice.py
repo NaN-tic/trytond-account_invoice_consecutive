@@ -63,7 +63,7 @@ class Invoice:
         Module = pool.get('ir.module')
 
         super(Invoice, self).set_number()
-        if self.type in ('out_invoice', 'out_credit_note'):
+        if self.type in ('out_invoice', 'out_credit_note') and not self.number:
             table = self.__table__()
             move = Move.__table__()
             period = Period.__table__()
