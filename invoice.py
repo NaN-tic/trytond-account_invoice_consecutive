@@ -85,7 +85,7 @@ class Invoice(metaclass=PoolMeta):
             query = query.join(move, condition=(table.move == move.id)).join(
                 period, condition=move.period == period.id)
 
-            where = ((table.state != 'draft') &
+            where = ((table.number != None) &
                 (table.type == invoice.type) &
                 (table.company == invoice.company.id) &
                 (period.fiscalyear == fiscalyear.id))
