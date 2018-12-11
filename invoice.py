@@ -60,20 +60,14 @@ class Invoice:
             # continue
         pool = Pool()
         Period = pool.get('account.period')
-        Move = pool.get('account.move')
-        InvoiceLine = pool.get('account.invoice.line')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module')
+        Inv = pool.get('account.invoice')
 
         to_check = [i for i in invoices if i.type == 'out' and not i.number]
 
         super(Invoice, cls).set_number(invoices)
         for invoice in to_check:
-            table = cls.__table__()
-            move = Move.__table__()
-            period = Period.__table__()
-            iline = InvoiceLine.__table__()
-
             # As we have a control in the validate that make the
             # accounting_date have to be the same as invoice_date, in cas it
             # exist, we can use invoice_date to calculate the period.
@@ -81,54 +75,45 @@ class Invoice:
                 invoice.company.id, date=invoice.invoice_date)
             fiscalyear = Period(period_id).fiscalyear
 
-            query = table.join(iline, condition=(table.id == iline.invoice))
+            domain = [
+                ('number', '!=', None),
+                ('type', '=', self.type),
+                ('company', '=', self.company.id),
+                ('move.period.fiscalyear', '=', fiscalyear.id),
+                ['OR', [
+                        ('number', '<', self.number),
+                        ('invoice_date', '>', self.invoice_date),
+                        ], [
+                        ('number', '>', self.number),
+                        ('invoice_date', '<', self.invoice_date),
+                        ],],
+                ]
 
-            query = query.join(move, condition=(table.move == move.id)).join(
-                period, condition=move.period == period.id)
+            if self.untaxed_amount >= 0:
+                domain.append(('untaxed_amount', '>=', 0))
+            else:
+                domain.append(('untaxed_amount', '<', 0))
 
-            where = ((table.number != None) &
-                (table.type == invoice.type) &
-                (table.company == invoice.company.id) &
-                (period.fiscalyear == fiscalyear.id))
             account_invoice_sequence_module_installed = Module.search([
                     ('name', '=', 'account_invoice_multisequence'),
                     ('state', '=', 'activated'),
             ])
 
             if account_invoice_sequence_module_installed:
-                where &= (table.journal == invoice.journal.id)
+                domain.append(('journal', '=', self.journal.id))
 
-            subselect = query.select(table.id, table.number,
-                Round(Sum(iline.quantity * iline.unit_price)).as_('amount'),
-                where=where, group_by=(table.id, table.number))
+            invs = Inv.search(domain, limit=5)
 
-            if invoice.untaxed_amount > 0:
-                where2 = (subselect.amount > 0)
-            else:
-                where2 = (subselect.amount <= 0)
-
-            where &= (
-                (table.id.in_(subselect.select(subselect.id, where=where2))) &
-                (((table.number < invoice.number) &
-                    (table.invoice_date > invoice.invoice_date)) |
-                ((table.number > invoice.number) &
-                    (table.invoice_date < invoice.invoice_date))))
-
-            query = query.select(table.number, table.invoice_date, where=where,
-                limit=5)
-            cursor = Transaction().connection.cursor()
-            cursor.execute(*query)
-            records = cursor.fetchall()
-            if records:
+            if invs:
                 language = Lang.get()
                 info = ['%(number)s - %(date)s' % {
-                    'number': record[0],
-                    'date': language.strftime(record[1]),
-                    } for record in records]
+                    'number': inv.number,
+                    'date': language.strftime(inv.invoice_date),
+                    } for inv in invs]
                 info = '\n'.join(info)
                 cls.raise_user_error('invalid_number_date', {
                     'invoice_number': invoice.number,
                     'invoice_date': language.strftime(invoice.invoice_date),
-                    'invoice_count': len(records),
+                    'invoice_count': len(invs),
                     'invoices': info,
                     })
