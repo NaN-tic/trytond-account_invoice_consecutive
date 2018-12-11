@@ -58,7 +58,6 @@ class Invoice:
             # continue
         pool = Pool()
         Period = pool.get('account.period')
-        Move = pool.get('account.move')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module')
         Inv = pool.get('account.invoice.line')
