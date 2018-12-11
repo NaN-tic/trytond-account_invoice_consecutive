@@ -2,8 +2,6 @@
 # the full copyright notices and license terms.
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
-from sql.aggregate import Sum
-from sql.functions import Round
 
 __all__ = ['Invoice']
 
@@ -59,79 +57,63 @@ class Invoice:
             # continue
         pool = Pool()
         Period = pool.get('account.period')
-        Move = pool.get('account.move')
         Lang = pool.get('ir.lang')
         Module = pool.get('ir.module')
-        InvoiceLine = pool.get('account.invoice.line')
+        Inv = pool.get('account.invoice')
 
         has_number = True if self.number else False
         super(Invoice, self).set_number()
         if self.type == 'out' and not has_number:
-            table = self.__table__()
-            move = Move.__table__()
-            period = Period.__table__()
-            iline = InvoiceLine.__table__()
-
             # As we have a control in the validate that make the
             # accounting_date have to be the same as invoice_date, in cas it
             # exist, we can use invoice_date to calculate the period.
             period_id = Period.find(self.company.id, date=self.invoice_date)
             fiscalyear = Period(period_id).fiscalyear
 
-            query = table.join(iline, condition=(table.id == iline.invoice))
+            domain = [
+                ('number', '!=', None),
+                ('type', '=', self.type),
+                ('company', '=', self.company.id),
+                ('move.period.fiscalyear', '=', fiscalyear.id),
+                ['OR', [
+                        ('number', '<', self.number),
+                        ('invoice_date', '>', self.invoice_date),
+                        ], [
+                        ('number', '>', self.number),
+                        ('invoice_date', '<', self.invoice_date),
+                        ],],
+                ]
 
-            query = query.join(move, condition=(table.move == move.id)).join(
-                period, condition=move.period == period.id)
+            if self.untaxed_amount >= 0:
+                domain.append(('untaxed_amount', '>=', 0))
+            else:
+                domain.append(('untaxed_amount', '<', 0))
 
-            where = ((table.number != None) &
-                (table.type == self.type) &
-                (table.company == self.company.id) &
-                (period.fiscalyear == fiscalyear.id))
             account_invoice_sequence_module_installed = Module.search([
                     ('name', '=', 'account_invoice_multisequence'),
                     ('state', '=', 'installed'),
                 ])
-
             if account_invoice_sequence_module_installed:
-                where &= (table.journal == self.journal.id)
+                domain.append(('journal', '=', self.journal.id))
 
-            subselect = query.select(table.id, table.number,
-                Round(Sum(iline.quantity*iline.unit_price)).as_('amount'),
-                where=where, group_by=(table.id, table.number))
+            invoices = Inv.search(domain, limit=5)
 
-            if self.untaxed_amount >= 0:
-                where2 = (subselect.amount >= 0)
-            else:
-                where2 = (subselect.amount < 0)
-
-            where &= (
-                (table.id.in_(subselect.select(subselect.id, where=where2))) &
-                (((table.number < self.number) &
-                    (table.invoice_date > self.invoice_date)) |
-                ((table.number > self.number) &
-                    (table.invoice_date < self.invoice_date))))
-
-            query = query.select(table.number, table.invoice_date, where=where,
-                limit=5)
-            cursor = Transaction().connection.cursor()
-            cursor.execute(*query)
-            records = cursor.fetchall()
-            if records:
+            if invoices:
                 language = Transaction().language
                 languages = Lang.search([('code', '=', language)])
                 if not languages:
                     languages = Lang.search([('code', '=', 'en_US')])
                 language = languages[0]
                 info = ['%(number)s - %(date)s' % {
-                    'number': record[0],
-                    'date': Lang.strftime(record[1], language.code,
+                    'number': invoice.number,
+                    'date': Lang.strftime(invoice.invoice_date, language.code,
                         language.date),
-                    } for record in records]
+                    } for invoice in invoices]
                 info = '\n'.join(info)
                 self.raise_user_error('invalid_number_date', {
                     'invoice_number': self.number,
                     'invoice_date': Lang.strftime(self.invoice_date,
                         language.code, language.date),
-                    'invoice_count': len(records),
+                    'invoice_count': len(invoices),
                     'invoices': info,
                     })
