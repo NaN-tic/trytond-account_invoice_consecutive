@@ -77,19 +77,19 @@ class Invoice:
 
             domain = [
                 ('number', '!=', None),
-                ('type', '=', self.type),
-                ('company', '=', self.company.id),
+                ('type', '=', invoice.type),
+                ('company', '=', invoice.company.id),
                 ('move.period.fiscalyear', '=', fiscalyear.id),
                 ['OR', [
-                        ('number', '<', self.number),
-                        ('invoice_date', '>', self.invoice_date),
+                        ('number', '<', invoice.number),
+                        ('invoice_date', '>', invoice.invoice_date),
                         ], [
-                        ('number', '>', self.number),
-                        ('invoice_date', '<', self.invoice_date),
+                        ('number', '>', invoice.number),
+                        ('invoice_date', '<', invoice.invoice_date),
                         ],],
                 ]
 
-            if self.untaxed_amount >= 0:
+            if invoice.untaxed_amount >= 0:
                 domain.append(('untaxed_amount', '>=', 0))
             else:
                 domain.append(('untaxed_amount', '<', 0))
@@ -100,7 +100,7 @@ class Invoice:
             ])
 
             if account_invoice_sequence_module_installed:
-                domain.append(('journal', '=', self.journal.id))
+                domain.append(('journal', '=', invoice.journal.id))
 
             invs = Inv.search(domain, limit=5)
 
