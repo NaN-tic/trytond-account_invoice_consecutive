@@ -19,7 +19,7 @@ class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
     module = 'account_invoice_consecutive'
 
     @with_transaction()
-    def test0010check_credit_limit(self):
+    def test0010check_invoice_date(self):
         'Test check_credit_limit'
         pool = Pool()
         FiscalYear = pool.get('account.fiscalyear')

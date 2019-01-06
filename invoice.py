@@ -33,7 +33,7 @@ class Invoice(metaclass=PoolMeta):
 
             raise UserError(gettext(
                 'account_invoice_consecutive.not_same_dates',
-                    invoice_date'=Lang.strftime(self.invoice_date,
+                    invoice_date=Lang.strftime(self.invoice_date,
                         language.code, language.date),
                     accounting_date= Lang.strftime(self.accounting_date,
                         language.code, language.date)))
@@ -97,7 +97,7 @@ class Invoice(metaclass=PoolMeta):
                     } for inv in invs]
                 info = '\n'.join(info)
                 raise UserError(gettext(
-                    'account_invoice_consecutiveinvalid_number_date',
+                    'account_invoice_consecutive.invalid_number_date',
                         invoice_number=invoice.number,
                         invoice_date=language.strftime(invoice.invoice_date),
                         invoice_count=len(invs),
