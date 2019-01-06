@@ -4,27 +4,13 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
 from sql.aggregate import Sum
 from sql.functions import Round
-
+from trytond.i18n import gettext
+from trytond.exceptions import UserError
 __all__ = ['Invoice']
 
 
 class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
-
-    @classmethod
-    def __setup__(cls):
-        super(Invoice, cls).__setup__()
-        cls._error_messages.update({
-                'invalid_number_date': 'You are trying to create '
-                '%(invoice_number)s invoice on date %(invoice_date)s. '
-                'There are %(invoice_count)d invoices after this date:'
-                '\n\n%(invoices)s',
-                'not_same_dates': 'You are trying to validate an invoice '
-                'where invoice date (%(invoice_date)s) and accounting '
-                'date (%(accounting_date)s) are different. That is not '
-                'permitted, because of invoice number and date '
-                'correlation.',
-                })
 
     @classmethod
     def validate(cls, invoices):
@@ -45,12 +31,12 @@ class Invoice(metaclass=PoolMeta):
                 languages = Lang.search([('code', '=', 'en')], limit=1)
             language, = languages
 
-            self.raise_user_error('not_same_dates', {
-                'invoice_date': Lang.strftime(self.invoice_date, language.code,
-                    language.date),
-                'accounting_date': Lang.strftime(self.accounting_date,
-                    language.code, language.date),
-                })
+            raise UserError(gettext(
+                'account_invoice_consecutive.not_same_dates',
+                    invoice_date'=Lang.strftime(self.invoice_date,
+                        language.code, language.date),
+                    accounting_date= Lang.strftime(self.accounting_date,
+                        language.code, language.date)))
 
     @classmethod
     def set_number(cls, invoices):
@@ -110,9 +96,9 @@ class Invoice(metaclass=PoolMeta):
                     'date': language.strftime(inv.invoice_date),
                     } for inv in invs]
                 info = '\n'.join(info)
-                cls.raise_user_error('invalid_number_date', {
-                    'invoice_number': invoice.number,
-                    'invoice_date': language.strftime(invoice.invoice_date),
-                    'invoice_count': len(invs),
-                    'invoices': info,
-                    })
+                raise UserError(gettext(
+                    'account_invoice_consecutiveinvalid_number_date',
+                        invoice_number=invoice.number,
+                        invoice_date=language.strftime(invoice.invoice_date),
+                        invoice_count=len(invs),
+                        invoices=info))
