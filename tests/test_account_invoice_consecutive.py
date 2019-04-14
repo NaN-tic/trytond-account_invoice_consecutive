@@ -39,13 +39,12 @@ class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
             second_period = fiscalyear.periods[1]
 
             receivable, = Account.search([
-                    ('kind', '=', 'receivable'),
+                    ('type.receivable', '=', True),
                     ])
             revenue, = Account.search([
-                    ('kind', '=', 'revenue'),
+                    ('type.revenue', '=', True),
                     ])
             account_tax, = Account.search([
-                    ('kind', '=', 'other'),
                     ('name', '=', 'Main Tax'),
                     ])
             journal, = Journal.search([], limit=1)
