@@ -2,7 +2,7 @@
 <!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
 this repository contains the full copyright notices and license terms. -->
 <tryton>
-    <data group="1">
+    <data grouped="1">
       <record model="ir.message" id="invalid_number_date">
           <field name="text">You are trying to create %(invoice_number)s invoice on date %(invoice_date)s. There are %(invoice_count)d invoices after this date:\n\n%(invoices)s.</field>
       </record>
