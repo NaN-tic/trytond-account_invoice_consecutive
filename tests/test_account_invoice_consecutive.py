@@ -96,7 +96,7 @@ class AccountInvoiceConsecutiveTestCase(ModuleTestCase):
             yesterday = second_period.start_date + relativedelta(days=1)
             create_invoice(today)
             # Invoices can be created in the past
-            error_msg = 'There are 1 invoices after this date'
+            error_msg = 'an accounting date after'
             for date in [yesterday, first_period.end_date,
                     first_period.start_date]:
                 with self.assertRaises(UserError) as cm:
