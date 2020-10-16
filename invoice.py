@@ -95,6 +95,7 @@ class Invoice(metaclass=PoolMeta):
         invoices = sorted(invoices, key=accounting_date)
         sequences = set()
 
+        super(Invoice, cls).set_number(invoices)
         for invoice in invoices:
             # Posted and paid invoices are tested by check_modify so we can
             # not modify tax_identifier nor number
