@@ -75,7 +75,9 @@ class Invoice(metaclass=PoolMeta):
                     invoice=self.rec_name,
                     fiscalyear=fiscalyear.rec_name))
         with Transaction().set_context(date=accounting_date):
-            return Sequence.get_id(sequence.id), sequence
+            if Transaction().context.get('check_consecutive'):
+                return Sequence.get_id(sequence.id), sequence
+            return Sequence.get_id(sequence.id)
 
     @classmethod
     def set_number(cls, invoices):
@@ -112,7 +114,8 @@ class Invoice(metaclass=PoolMeta):
 
             if not invoice.invoice_date and invoice.type == 'out':
                 invoice.invoice_date = today
-            invoice.number, invoice.sequence = invoice.get_next_number()
+            with Transaction().set_context(check_consecutive=True):
+                invoice.number, invoice.sequence = invoice.get_next_number()
             if invoice.type == 'out' and invoice.sequence not in sequences:
                 date = accounting_date(invoice)
                 period_id = Period.find(
